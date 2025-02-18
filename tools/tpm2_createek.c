@@ -137,6 +137,7 @@ struct alg_map {
 static const alg_map alg_maps[] = {
     { "rsa",           "rsa2048:aes128cfb", "sha256", &policy_a_sha256, ATTRS_A },
     { "rsa2048",       "rsa2048:aes128cfb", "sha256", &policy_a_sha256, ATTRS_A },
+    { "sphincs",       "sphincs",	    "sha256", &policy_a_sha256, ATTRS_A },
     { "rsa3072",       "rsa3072:aes256cfb", "sha384", &policy_b_sha384, ATTRS_B },
     { "rsa4096",       "rsa4096:aes256cfb", "sha384", &policy_b_sha384, ATTRS_B },
     { "ecc",           "ecc_nist_p256:aes128cfb", "sha256", &policy_a_sha256, ATTRS_A },
