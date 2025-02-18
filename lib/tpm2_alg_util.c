@@ -47,6 +47,7 @@ static void tpm2_alg_util_for_each_alg(alg_iter iterator, void *userdata) {
         // Asymmetric
         { .name = "rsa", .id = TPM2_ALG_RSA, .flags = tpm2_alg_util_flags_asymmetric|tpm2_alg_util_flags_base },
         { .name = "ecc", .id = TPM2_ALG_ECC, .flags = tpm2_alg_util_flags_asymmetric|tpm2_alg_util_flags_base },
+        { .name = "sphincs", .id = TPM2_ALG_SPHINCS_SHAKE_256F, .flags = tpm2_alg_util_flags_asymmetric|tpm2_alg_util_flags_base },
 
         // Symmetric
         { .name = "tdes", .id = TPM2_ALG_TDES, .flags = tpm2_alg_util_flags_symmetric },
@@ -314,6 +315,16 @@ static alg_parser_rc handle_rsa(const char *ext, TPM2B_PUBLIC *public) {
     return ext[0] == '\0' ? alg_parser_rc_continue : alg_parser_rc_error;
 }
 
+static alg_parser_rc handle_sphincs(TPM2B_PUBLIC *public) {
+    public->publicArea.type = TPM2_ALG_SPHINCS_SHAKE_256F;
+    TPMS_RSA_PARMS *r = &public->publicArea.parameters.rsaDetail;
+    r->exponent = 0;
+    r->keyBits = 2048;
+    r->scheme.scheme = TPM2_ALG_NULL;
+
+    return alg_parser_rc_continue;
+}
+
 static alg_parser_rc handle_ecc(const char *ext, TPM2B_PUBLIC *public) {
 
     public->publicArea.type = TPM2_ALG_ECC;
@@ -445,6 +456,8 @@ static alg_parser_rc handle_object(const char *object, TPM2B_PUBLIC *public) {
         return handle_xor(public);
     } else if (!strcmp(object, "keyedhash")) {
         return handle_keyedhash(public);
+    } else if (!strcmp(object, "sphincs")) {
+        return handle_sphincs(public);
     }
 
     return alg_parser_rc_error;
@@ -483,6 +496,8 @@ static alg_parser_rc handle_scheme_keyedhash(const char *scheme,
 static alg_parser_rc handle_scheme(const char *scheme, TPM2B_PUBLIC *public) {
 
     switch (public->publicArea.type) {
+    case TPM2_ALG_SPHINCS_SHAKE_256F:
+        	return alg_parser_rc_continue;
     case TPM2_ALG_RSA:
     case TPM2_ALG_ECC:
         return handle_scheme_sign(scheme, public);
@@ -505,6 +520,7 @@ static alg_parser_rc handle_asym_detail(const char *detail,
 
     switch (public->publicArea.type) {
     case TPM2_ALG_RSA:
+    case TPM2_ALG_SPHINCS_SHAKE_256F:
     case TPM2_ALG_ECC:
 
         if (!detail || detail[0] == '\0') {
